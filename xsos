@@ -2264,12 +2264,15 @@ IPADDR() {
       # Pull out input for specific interface and save to interface key in array
       iface_input[$i]=$(gawk "BEGIN {RS=\"\n\n\"} /^[0-9]+: ${i}:/" <<<"${ip_a_input}")
 
+      # Store a substr of $i with any @<master> removed
+      i_substr=$(expr match "$i" '\([^@]*\)')
+
       # Figure out if $i is a slave of some bond / bridge device
       slaveof[$i]=$(
         if egrep -q 'SLAVE|master' <<<"${iface_input[$i]}"; then
           egrep -o 'master [[:graph:]]+' <<<"${iface_input[$i]}" | gawk '{print $2}'
-        elif [[ -n $brctl_show_input && -n ${lookup_bridge[$i]} ]]; then
-          echo ${lookup_bridge[$i]}
+        elif [[ -n $brctl_show_input && -n ${lookup_bridge[$i_substr]} ]]; then
+          echo ${lookup_bridge[$i_substr]}
         else
           echo "-"
         fi
